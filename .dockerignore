@@ -1,0 +1,5 @@
+custom_libs
+!custom_libs/GDAL-3.4.3-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
+venv
+.idea
+__pycache__
