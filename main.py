@@ -1,5 +1,5 @@
 import json
-from datetime import time
+import time
 
 import stackstac
 from fastapi import FastAPI
