@@ -1,4 +1,5 @@
 import json
+from datetime import time
 
 import stackstac
 from fastapi import FastAPI
@@ -25,15 +26,20 @@ async def ndvi(data: RequestDataDto):
         results = []
         meta = []
         for item in items:
-            results.append(executor.execute(item))
+            start_time = time.time()
+            ndvi_result = executor.execute(item)
+            end_time = time.time()
+            results.append({'ndvi': ndvi_result, 'exec_time': end_time - start_time})
+
         #     delayed_results.append(delayed(calculate)(executor, item))
         filenames = []
         # results = dask.compute(*delayed_results)
         for i, result in enumerate(results):
             filename = "ndvi_cmap_{}.png".format(i)
             filenames.append(filename)
-            create_figure(result.to_numpy(), filename)
-            meta.append({'bbox': items[i].bbox, 'filename': filename, 'date': items[i].date.strftime("%m/%d/%Y")})
+            create_figure(result.get('ndvi').to_numpy(), filename)
+            meta.append({'exec_time': result.get('exec_time'), 'bbox': items[i].bbox, 'filename': filename,
+                         'date': items[i].date.strftime("%m/%d/%Y")})
         with open('meta.json', 'w', encoding='utf8') as json_file:
             json.dump(meta, json_file, ensure_ascii=False)
             filenames.append('meta.json')
