@@ -13,6 +13,61 @@ from utils.util import zip_files, create_figure, get_bbox
 app = FastAPI()
 
 
+def base(data: RequestDataDto, func):
+    cluster = create_cluster(data.computationURL, data.nodes)
+    client = cluster.get_client()
+    print(cluster.dashboard_link)
+    try:
+        bbox = get_bbox(data.geometry)
+        executor = Executor(data.dataRepositoryURL)
+        items = executor.search(bbox, data.date_range, data.scene_cloud_tolerance)
+        results = []
+        for i, item in enumerate(items):
+            start_time = time.time()
+            stack = stackstac.stack(item, epsg=4326, chunksize=data.chunk_size)
+            nir, red = stack.sel(band="B08"), stack.sel(band="B04")
+            res = func(nir, red)
+            end_time = time.time()
+            results.append({'res': res, 'exec_time': end_time - start_time, 'bbox': item.bbox,
+                            'date': item.date.strftime("%m/%d/%Y"), 'index': i})
+        return results
+    except Exception as e:
+        print(e)
+    finally:
+        cluster.shutdown()
+
+
+@app.post("/sum")
+async def sum(data: RequestDataDto):
+    return base(data, lambda nir, red: (nir + red).compute())
+
+
+@app.post("/sub")
+async def sub(data: RequestDataDto):
+    return base(data, lambda nir, red: (nir - red).compute())
+
+
+@app.post("/mul")
+async def mul(data: RequestDataDto):
+    return base(data, lambda nir, red: (nir * red).compute())
+
+
+@app.post("/div")
+async def div(data: RequestDataDto):
+    return base(data, lambda nir, red: (nir / red).compute())
+
+
+@app.post("/mem")
+async def mem(data: RequestDataDto):
+    return base(data, load_into_memory)
+
+
+def load_into_memory(nir, red):
+    nir = nir.persist()
+    red = red.persist()
+    return None
+
+
 @app.post("/ndvi")
 async def ndvi(data: RequestDataDto):
     cluster = create_cluster(data.computationURL, data.nodes)
