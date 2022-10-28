@@ -2,6 +2,7 @@ import json
 import time
 
 import stackstac
+from distributed import performance_report
 from fastapi import FastAPI
 from satsearch import Search
 
@@ -28,8 +29,38 @@ def base(data: RequestDataDto, func):
             nir, red = stack.sel(band="B08"), stack.sel(band="B04")
             res = func(nir, red)
             end_time = time.time()
-            results.append({'res': res, 'exec_time': end_time - start_time, 'bbox': item.bbox,
+            results.append({'exec_time': end_time - start_time, 'bbox': item.bbox,
                             'date': item.date.strftime("%m/%d/%Y"), 'index': i})
+        return results
+    except Exception as e:
+        print(e)
+    finally:
+        cluster.shutdown()
+
+
+@app.post("/mix")
+async def mix(data: RequestDataDto):
+    cluster = create_cluster(data.computationURL, data.nodes)
+    client = cluster.get_client()
+    print(cluster.dashboard_link)
+    try:
+        bbox = get_bbox(data.geometry)
+        executor = Executor(data.dataRepositoryURL)
+        items = executor.search(bbox, data.date_range, data.scene_cloud_tolerance)
+        results = []
+        for i, item in enumerate(items):
+            start_time = time.time()
+            stack = stackstac.stack(item, epsg=4326, chunksize=data.chunk_size)
+            nir, red = stack.sel(band="B08"), stack.sel(band="B04")
+            sum = (nir + red).compute()
+            results.append({'exec_time': time.time() - start_time, 'index': i, 'op': 'sum'})
+            start_time = time.time()
+            sub = (nir - red).compute()
+            results.append({'exec_time': time.time() - start_time, 'index': i, 'op': 'sub'})
+            start_time = time.time()
+            ndvi = (sum / sub)
+            results.append({'exec_time': time.time() - start_time, 'index': i, 'op': 'sub'})
+
         return results
     except Exception as e:
         print(e)
@@ -60,6 +91,34 @@ async def div(data: RequestDataDto):
 @app.post("/mem")
 async def mem(data: RequestDataDto):
     return base(data, load_into_memory)
+
+
+@app.post("/ndvifull")
+async def mem(data: RequestDataDto):
+    cluster = create_cluster(data.computationURL, data.nodes)
+    client = cluster.get_client()
+    print(cluster.dashboard_link)
+    try:
+        bbox = get_bbox(data.geometry)
+        executor = Executor(data.dataRepositoryURL)
+        search = Search(bbox=bbox, datetime=data.date_range,
+                        query={"eo:cloud_cover": {"lt": data.scene_cloud_tolerance}},
+                        collections=["sentinel-s2-l2a-cogs"],
+                        url=data.dataRepositoryURL)
+        items = search.items()
+
+        stack = stackstac.stack(items, epsg=data.epsg, chunksize=data.chunk_size, bounds=bbox)
+        nir, red = stack.sel(band="B08"), stack.sel(band="B04")
+        with performance_report(filename="dask-report.html"):
+            start_time = time.time()
+            ndvi = ((nir - red) / (nir + red))
+            ndvi = ndvi.compute()
+            end_time = time.time()
+            return {'exec_time': end_time - start_time}
+    except Exception as e:
+        print(e)
+    finally:
+        cluster.shutdown()
 
 
 def load_into_memory(nir, red):
