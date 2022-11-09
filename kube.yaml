@@ -12,7 +12,7 @@ spec:
     nodePort: 32741
   type: NodePort
   externalIPs:
-  - 128.110.223.99
+  - 128.105.146.156
 
 ---
 apiVersion: apps/v1
@@ -31,7 +31,7 @@ spec:
     spec:
       containers:
       - name: eo-platform
-        image: arthurlalayan/eo_platform:0.0.10
+        image: arthurlalayan/eo_platform:0.0.15
         resources:
             limits:
                 cpu: "5"
