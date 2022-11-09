@@ -1,7 +1,6 @@
 import json
 import time
 
-import dask
 import numpy as np
 import stackstac
 from distributed import Client
@@ -126,7 +125,7 @@ async def mem(data: RequestDataDto):
 
 
 @app.post("/ndvi_season")
-async def mem(data: RequestDataDto):
+async def ndvi_season(data: RequestDataDto):
     cluster = create_cluster(data.computationURL, data.nodes)
     client = Client()
     print(cluster.dashboard_link)
@@ -140,18 +139,85 @@ async def mem(data: RequestDataDto):
         items = search.items()
 
         stack = stackstac.stack(items, epsg=data.epsg, chunksize=data.chunk_size, bounds=bbox, assets=["B08", "B04"])
+        size = (np.prod(stack.shape) / 1024 / 1024 * 8)
         nir, red = stack.sel(band="B08"), stack.sel(band="B04")
         start_time = time.time()
         try:
             ndvi = ((nir - red) / (nir + red))
             ndvi = ndvi.mean("time").compute()
             print(ndvi)
-            ndvi = ndvi.mean()
-            print(ndvi)
+            # ndvi = ndvi.mean()
+            # print(ndvi)
         except Exception as e:
             print(e)
         end_time = time.time()
-        return {'exec_time': end_time - start_time}
+        return {'exec_time': end_time - start_time, 'size': size, 'shape': stack.shape}
+    except Exception as e:
+        print(e)
+    finally:
+        cluster.shutdown()
+
+@app.post("/ndvi_season_mean")
+async def ndvi_season_mean(data: RequestDataDto):
+    cluster = create_cluster(data.computationURL, data.nodes)
+    client = Client()
+    print(cluster.dashboard_link)
+    try:
+        bbox = get_bbox(data.geometry)
+        executor = Executor(data.dataRepositoryURL)
+        search = Search(bbox=bbox, datetime=data.date_range,
+                        query={"eo:cloud_cover": {"lt": data.scene_cloud_tolerance}},
+                        collections=["sentinel-s2-l2a-cogs"],
+                        url=data.dataRepositoryURL)
+        items = search.items()
+
+        stack = stackstac.stack(items, epsg=data.epsg, chunksize=data.chunk_size, bounds=bbox, assets=["B08", "B04"])
+        size = (np.prod(stack.shape) / 1024 / 1024 * 8)
+        nir, red = stack.sel(band="B08"), stack.sel(band="B04")
+        start_time = time.time()
+        try:
+            ndvi = ((nir - red) / (nir + red))
+            ndvi = ndvi.mean("time").mean().compute()
+            print(ndvi)
+            # ndvi = ndvi.mean()
+            # print(ndvi)
+        except Exception as e:
+            print(e)
+        end_time = time.time()
+        return {'exec_time': end_time - start_time, 'size': size, 'shape': stack.shape}
+    except Exception as e:
+        print(e)
+    finally:
+        cluster.shutdown()
+
+@app.post("/ndvi_season_just_mean")
+async def ndvi_season_just_mean(data: RequestDataDto):
+    cluster = create_cluster(data.computationURL, data.nodes)
+    client = Client()
+    print(cluster.dashboard_link)
+    try:
+        bbox = get_bbox(data.geometry)
+        executor = Executor(data.dataRepositoryURL)
+        search = Search(bbox=bbox, datetime=data.date_range,
+                        query={"eo:cloud_cover": {"lt": data.scene_cloud_tolerance}},
+                        collections=["sentinel-s2-l2a-cogs"],
+                        url=data.dataRepositoryURL)
+        items = search.items()
+
+        stack = stackstac.stack(items, epsg=data.epsg, chunksize=data.chunk_size, bounds=bbox, assets=["B08", "B04"])
+        size = (np.prod(stack.shape) / 1024 / 1024 * 8)
+        nir, red = stack.sel(band="B08"), stack.sel(band="B04")
+        start_time = time.time()
+        try:
+            ndvi = ((nir - red) / (nir + red))
+            ndvi = ndvi.mean().compute()
+            print(ndvi)
+            # ndvi = ndvi.mean()
+            # print(ndvi)
+        except Exception as e:
+            print(e)
+        end_time = time.time()
+        return {'exec_time': end_time - start_time, 'size': size, 'shape': stack.shape}
     except Exception as e:
         print(e)
     finally:
