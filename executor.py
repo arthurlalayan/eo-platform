@@ -5,8 +5,11 @@ from functions.ndvi import NDVI
 
 class Executor:
 
-    def __init__(self, stac_api_url):
+    def __init__(self, stac_api_url, function, epsg: int, chunk_size: tuple):
         self.stac_api_url = stac_api_url
+        self.function = function
+        self.epsg = epsg
+        self.chunk_size = chunk_size
 
     def search(self, bbox, date_range, scene_cloud_tolerance):
         search = Search(bbox=bbox, datetime=date_range,
@@ -17,5 +20,10 @@ class Executor:
         return items
 
     def execute(self, item):
-        ndvi = NDVI(item, 4326, (1024, 1024))
-        return ndvi.extract_bands().compute()
+        meta = self.get_function_meta(item)
+        return meta.generate_graph().compute()
+
+    def get_function_meta(self, item):
+        if self.function == 'ndvi':
+            return NDVI(item, self.epsg, self.chunk_size)
+        raise Exception(f'method {self.function} not implemented!')
