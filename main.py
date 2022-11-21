@@ -21,7 +21,7 @@ async def ndvi_full(data: RequestDataDto):
     print(cluster.dashboard_link)
     try:
         bbox = get_bbox(data.coords)
-        executor = Executor(data.dataRepositoryURL)
+        # executor = Executor(data.dataRepositoryURL)
         search = Search(bbox=bbox, datetime=data.date_range,
                         query={"eo:cloud_cover": {"lt": data.scene_cloud_tolerance}},
                         collections=["sentinel-s2-l2a-cogs"],
@@ -75,15 +75,6 @@ async def compute(data: RequestDataDto, function: str):
         print(e)
     finally:
         cluster.shutdown()
-
-
-def search(stac_api_url, bbox, date_range, scene_cloud_tolerance):
-    search = Search(bbox=bbox, datetime=date_range,
-                    query={"eo:cloud_cover": {"lt": scene_cloud_tolerance}},
-                    collections=["sentinel-s2-l2a-cogs"],
-                    url=stac_api_url)
-    items = search.items()
-    return items
 
 
 @app.get("/test")
