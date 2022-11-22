@@ -4,7 +4,7 @@ import stackstac
 # from functions.base_function import BaseFunction
 
 
-class NDVI():
+class NDVI:
 
     def __init__(self, item, epsg, chunk_size):
         self.item = item
