@@ -12,7 +12,7 @@ spec:
     nodePort: 32741
   type: NodePort
   externalIPs:
-  - 128.105.146.156
+  - 128.110.219.0
 
 ---
 apiVersion: apps/v1

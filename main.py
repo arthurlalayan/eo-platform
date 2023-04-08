@@ -2,6 +2,7 @@ import json
 import time
 
 import stackstac
+from dask_gateway import GatewayCluster
 from distributed import wait
 from fastapi import FastAPI
 from satsearch import Search
@@ -45,10 +46,21 @@ async def ndvi_full(data: RequestDataDto):
 
 
 @app.post("/{function}")
+async def computeOptimal(data: RequestDataDto, function: str):
+    cluster = create_cluster(data.computationURL, data.nodes)
+    client = cluster.get_client()
+    print(cluster.dashboard_link)
+    calculate(data, function, cluster)
+
+@app.post("/{function}")
 async def compute(data: RequestDataDto, function: str):
     cluster = create_cluster(data.computationURL, data.nodes)
     client = cluster.get_client()
     print(cluster.dashboard_link)
+    calculate(data, function, cluster)
+
+
+def calculate(data: RequestDataDto, function: str, cluster: GatewayCluster):
     try:
         bbox = get_bbox(data.coords)
         executor = Executor(data.dataRepositoryURL, function, data.epsg, data.chunk_size)

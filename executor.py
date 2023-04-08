@@ -1,6 +1,8 @@
 from satsearch import Search
 
+from functions.evi import EVI
 from functions.ndvi import NDVI
+from functions.ndwi import NDWI
 
 
 class Executor:
@@ -26,4 +28,8 @@ class Executor:
     def get_function_meta(self, item):
         if self.function == 'ndvi':
             return NDVI(item, self.epsg, self.chunk_size)
+        if self.function == 'ndwi':
+            return NDWI(item, self.epsg, self.chunk_size)
+        if self.function == 'evi':
+            return EVI(item, self.epsg, self.chunk_size)
         raise Exception(f'method {self.function} not implemented!')
