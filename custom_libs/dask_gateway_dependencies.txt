@@ -1,0 +1,5 @@
+RUN pip install stackstac
+RUN pip install rioxarray
+RUN pip install sat-stac
+RUN pip install bokeh==2.4.3
+RUN pip install python-dateutil==2.8.2
