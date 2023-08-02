@@ -1,0 +1,20 @@
+helm repo add dask https://helm.dask.org && helm repo update && helm install --version 2022.11.0 gateway dask/dask-gateway --set-file gateway.extraConfig.clusteroptions=a.py
+
+
+from dask_gateway_server.options import Options, Integer, Float, String, Mapping
+
+def option_handler(options):
+	return {
+		"worker_cores": options.worker_cores,
+		"worker_memory": "%fG" % options.worker_memory,
+		"image": options.image,
+		"environment": options.environment
+	}
+
+c.Backend.cluster_options = Options(
+	Integer("worker_cores", 2, min=2, max=2, label="Worker Cores"),
+	Float("worker_memory", 4, min=4, max=4, label="Worker Memory (GiB)"),
+	String("image", default="arthurlalayan/eo_dask_gateway:0.0.5", label="Image"),
+	Mapping("environment", default=dict(), label="Environment"),
+	handler=option_handler,
+)

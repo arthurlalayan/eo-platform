@@ -45,12 +45,12 @@ async def ndvi_full(data: RequestDataDto):
         cluster.shutdown()
 
 
-@app.post("/{function}")
-async def computeOptimal(data: RequestDataDto, function: str):
-    cluster = create_cluster(data.computationURL, data.nodes)
-    client = cluster.get_client()
-    print(cluster.dashboard_link)
-    calculate(data, function, cluster)
+# @app.post("/{function}")
+# async def compute_optimal(data: RequestDataDto, function: str):
+#     cluster = create_cluster(data.computationURL, data.nodes)
+#     client = cluster.get_client()
+#     print(cluster.dashboard_link)
+#     calculate(data, function, cluster)
 
 @app.post("/{function}")
 async def compute(data: RequestDataDto, function: str):

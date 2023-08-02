@@ -1,0 +1,41 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: eo-platform-service
+spec:
+  selector:
+    app: eo-platform
+  ports:
+  - protocol: "TCP"
+    port: 81
+    targetPort: 80
+    nodePort: 32741
+  type: NodePort
+  externalIPs:
+  - 128.110.223.2
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: eo-platform
+spec:
+  selector:
+    matchLabels:
+      app: eo-platform
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: eo-platform
+    spec:
+      containers:
+      - name: eo-platform
+        image: arthurlalayan/eo_platform:0.0.18
+        resources:
+            limits:
+                cpu: "5"
+            requests:
+                cpu: "5"
+        ports:
+        - containerPort: 80
