@@ -12,13 +12,13 @@ def create_figure(result, filename):
     r.get_figure().savefig(filename, bbox_inches='tight', pad_inches=0)
 
 
-def zip_files(timestamp):
+def zip_files(task_id):
     io = BytesIO()
-    zip_filename = "%s.zip" % f"output_{timestamp}"
-    filenames = os.listdir(os.path.join('output', timestamp))
+    zip_filename = "%s.zip" % f"output_{task_id}"
+    filenames = os.listdir(os.path.join('output', task_id))
     with zipfile.ZipFile(io, mode='w', compression=zipfile.ZIP_DEFLATED) as zip:
         for fpath in filenames:
-            zip.write(os.path.join(os.getcwd(), 'output', timestamp, fpath), arcname=fpath)
+            zip.write(os.path.join(os.getcwd(), 'output', task_id, fpath), arcname=fpath)
         zip.close()
     return StreamingResponse(
         iter([io.getvalue()]),

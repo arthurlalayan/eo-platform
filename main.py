@@ -34,9 +34,9 @@ async def compute(data: RequestDataDto, function: str):
 
         start_time = time.time()
 
-        timestamp = str(int(start_time))
-        image_name = f"{function}_{timestamp}"
-        output_path = os.path.join(output_dir, timestamp)
+        task_id = str(int(start_time))
+        image_name = f"{function}_{task_id}"
+        output_path = os.path.join(output_dir, task_id)
         os.makedirs(output_path, exist_ok=True)
         meta_file_name = f"meta_{function}_{int(start_time)}.json"
 
@@ -47,12 +47,12 @@ async def compute(data: RequestDataDto, function: str):
              .start())
             return {
                 "dask_dashboard_url": cluster.dashboard_link,
-                "timestamp": timestamp
+                "task_id": task_id
             }
 
         create_output(executor, items, start_time, data, image_name, cluster, bbox, output_path, meta_file_name)
 
-        return zip_files(timestamp)
+        return zip_files(task_id)
     except Exception as e:
         print(e)
         cluster.shutdown()
@@ -77,9 +77,9 @@ def create_output(executor, items, start_time, data, image_name, cluster, bbox, 
         cluster.shutdown()
 
 
-@app.get("/output/{timestamp}")
-def get_result(timestamp: str):
-    return zip_files(timestamp)
+@app.get("/output/{task_id}")
+def get_result(task_id: str):
+    return zip_files(task_id)
 
 
 @app.post("/{function}")
