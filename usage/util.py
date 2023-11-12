@@ -10,9 +10,9 @@ def convert_bounds(bbox, invert_y=False):
         y1, y2 = y2, y1
     return ((y1, x1), (y2, x2))
 
-def visualize():
+def visualize(meta_file_name):
   map = folium.Map()
-  with open("meta.json", encoding = 'utf-8') as f:
+  with open(meta_file_name, encoding = 'utf-8') as f:
     data = json.loads(f.read())
   for i, im in enumerate(data):
     bbox = im.get('bbox')
