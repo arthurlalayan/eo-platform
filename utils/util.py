@@ -1,3 +1,5 @@
+import json
+import os
 import zipfile
 from io import BytesIO
 
@@ -10,13 +12,13 @@ def create_figure(result, filename):
     r.get_figure().savefig(filename, bbox_inches='tight', pad_inches=0)
 
 
-def zip_files(file_list):
+def zip_files(timestamp):
     io = BytesIO()
-    zip_sub_dir = "ndvi_images"
-    zip_filename = "%s.zip" % zip_sub_dir
+    zip_filename = "%s.zip" % f"output_{timestamp}"
+    filenames = os.listdir(os.path.join('output', timestamp))
     with zipfile.ZipFile(io, mode='w', compression=zipfile.ZIP_DEFLATED) as zip:
-        for fpath in file_list:
-            zip.write(fpath)
+        for fpath in filenames:
+            zip.write(os.path.join(os.getcwd(), 'output', timestamp, fpath), arcname=fpath)
         zip.close()
     return StreamingResponse(
         iter([io.getvalue()]),

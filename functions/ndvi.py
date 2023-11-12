@@ -1,17 +1,21 @@
 import stackstac
 
-
-# from functions.base_function import BaseFunction
-
-
 class NDVI:
 
-    def __init__(self, item, epsg, chunk_size):
+    def __init__(self, item, epsg, chunk_size, bbox):
         self.item = item
         self.epsg = epsg
         self.chunk_size = chunk_size
+        self.bbox = bbox
 
     def generate_graph(self):
         stack = stackstac.stack(self.item, epsg=self.epsg, chunksize=self.chunk_size)
         nir, red = stack.sel(band="B08"), stack.sel(band="B04")
         return (nir - red) / (nir + red)
+
+    def generate_average_graph(self):
+        data = stackstac.stack(self.item, epsg=self.epsg, chunksize=self.chunk_size, bounds_latlon=self.bbox,
+                               assets=["B08", "B04"])
+        stack = data.mean('time')
+        nir, red = stack.sel(band="B08"), stack.sel(band="B04")
+        return ((nir - red) / (nir + red)).loc[::-1, :]
