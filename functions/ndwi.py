@@ -12,7 +12,7 @@ class NDWI:
     def generate_graph(self):
         stack = stackstac.stack(self.item, epsg=self.epsg, chunksize=self.chunk_size)
         nir, green = stack.sel(band="B08"), stack.sel(band="B03")
-        return (green - nir) / (green + nir)
+        return ((green - nir) / (green + nir)).loc[::-1, :]
 
     def generate_average_graph(self):
         data = stackstac.stack(self.item, epsg=self.epsg, chunksize=self.chunk_size, bounds_latlon=self.bbox,

@@ -31,7 +31,7 @@ spec:
     spec:
       containers:
       - name: eo-platform
-        image: arthurlalayan/eo_platform:0.0.37
+        image: arthurlalayan/eo_platform:0.0.38
         resources:
             limits:
                 cpu: "5"

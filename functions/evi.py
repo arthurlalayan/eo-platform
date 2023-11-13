@@ -12,7 +12,7 @@ class EVI:
     def generate_graph(self):
         stack = stackstac.stack(self.item, epsg=self.epsg, chunksize=self.chunk_size)
         nir, red, blue = stack.sel(band="B08"), stack.sel(band="B04"), stack.sel(band="B02")
-        return 2.5 * (nir - red) / (nir + 6 * red - 7.5 * blue + 1)
+        return (2.5 * (nir - red) / (nir + 6 * red - 7.5 * blue + 1)).loc[::-1, :]
 
     def generate_average_graph(self):
         data = stackstac.stack(self.item, epsg=self.epsg, chunksize=self.chunk_size, bounds_latlon=self.bbox,

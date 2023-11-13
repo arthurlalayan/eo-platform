@@ -22,9 +22,9 @@ class Executor:
         items = search.items()
         return items
 
-    def execute(self, item):
+    def graph(self, item):
         meta = self.get_function_meta(item)
-        return meta.generate_graph().compute()
+        return meta.generate_graph()
 
     def average_graph(self, item):
         meta = self.get_function_meta(item)
