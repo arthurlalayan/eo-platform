@@ -14,7 +14,7 @@ def option_handler(options):
 c.Backend.cluster_options = Options(
 	Integer("worker_cores", 2, min=1, max=64, label="Worker Cores"),
 	Float("worker_memory", 4, min=2, max=128, label="Worker Memory (GiB)"),
-	String("image", default="arthurlalayan/eo_dask_gateway:0.0.9", label="Image"),
+	String("image", default="arthurlalayan/eo_dask_gateway:0.0.5", label="Image"),
 	Mapping("environment", default=dict(), label="Environment"),
 	handler=option_handler,
 )
